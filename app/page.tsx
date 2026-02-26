@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { WalletProvider } from "@/lib/wallet-context"
+import type { CryptoAsset } from "@/lib/wallet-context"
 import { PinLogin } from "@/components/wallet/pin-login"
 import { BottomNav } from "@/components/wallet/bottom-nav"
 import { HomeScreen } from "@/components/wallet/home-screen"
@@ -13,8 +15,6 @@ import { RewardsScreen } from "@/components/wallet/rewards-screen"
 import { SettingsScreen } from "@/components/wallet/settings-screen"
 import { DiscoverScreen } from "@/components/wallet/discover-screen"
 import { TokenDetail } from "@/components/wallet/token-detail"
-import { cryptoAssets } from "@/lib/wallet-data"
-import type { CryptoAsset } from "@/lib/wallet-data"
 
 type Page =
   | "home"
@@ -31,6 +31,23 @@ type Page =
 
 export default function WalletApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  if (!isAuthenticated) {
+    return (
+      <main className="mx-auto min-h-screen max-w-md bg-background">
+        <PinLogin onSuccess={() => setIsAuthenticated(true)} />
+      </main>
+    )
+  }
+
+  return (
+    <WalletProvider>
+      <WalletAppContent />
+    </WalletProvider>
+  )
+}
+
+function WalletAppContent() {
   const [currentPage, setCurrentPage] = useState<Page>("home")
   const [pageHistory, setPageHistory] = useState<Page[]>(["home"])
   const [selectedAsset, setSelectedAsset] = useState<CryptoAsset | null>(null)
@@ -53,14 +70,6 @@ export default function WalletApp() {
   const goHome = () => {
     setPageHistory(["home"])
     setCurrentPage("home")
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <main className="mx-auto min-h-screen max-w-md bg-background">
-        <PinLogin onSuccess={() => setIsAuthenticated(true)} />
-      </main>
-    )
   }
 
   const subPages: Page[] = ["swap", "send", "send-amount", "receive", "settings", "token-detail"]
